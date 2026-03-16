@@ -26,7 +26,7 @@ import {
 
 import { useAuthStore } from '@/stores/auth.store';
 import { useUIStore } from '@/stores/ui.store';
-import { createBrowserClient } from '@/lib/supabase/client';
+import { createBrowserClient, hasSupabaseBrowserEnv } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import type { NavSection, UserRole } from '@/types/app.types';
 
@@ -112,11 +112,14 @@ export function Sidebar() {
     const pathname = usePathname();
     const { role } = useAuthStore();
     const { sidebarOpen, mobileSidebarOpen, setMobileSidebarOpen } = useUIStore();
-    const supabase = createBrowserClient();
-
     const sections = getNavForRole(role);
 
     const handleLogout = async () => {
+        if (!hasSupabaseBrowserEnv()) {
+            window.location.href = '/login';
+            return;
+        }
+        const supabase = createBrowserClient();
         await supabase.auth.signOut();
         window.location.href = '/login';
     };

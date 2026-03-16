@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2, ArrowRight, UserPlus, Mail, KeyRound, User, Phone } from 'lucide-react';
-import { createBrowserClient } from '@/lib/supabase/client';
+import { createBrowserClient, hasSupabaseBrowserEnv } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 
 export default function RegisterPage() {
@@ -21,8 +21,6 @@ export default function RegisterPage() {
     const [loading, setLoading] = useState(false);
 
     const router = useRouter();
-    const supabase = createBrowserClient();
-
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -38,6 +36,12 @@ export default function RegisterPage() {
         setLoading(true);
 
         try {
+            if (!hasSupabaseBrowserEnv()) {
+                toast.error('Falta configuración de Supabase en el entorno.');
+                return;
+            }
+
+            const supabase = createBrowserClient();
             const { error } = await supabase.auth.signUp({
                 email: formData.email,
                 password: formData.password,

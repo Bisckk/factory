@@ -1,15 +1,21 @@
 'use client';
 
 import { useEffect } from 'react';
-import { createBrowserClient } from '@/lib/supabase/client';
+import { createBrowserClient, hasSupabaseBrowserEnv } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/auth.store';
 import { Profile } from '@/types/database.types';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { setUser, setLoading } = useAuthStore();
-    const supabase = createBrowserClient();
 
     useEffect(() => {
+        if (!hasSupabaseBrowserEnv()) {
+            setUser(null);
+            setLoading(false);
+            return;
+        }
+
+        const supabase = createBrowserClient();
         let mounted = true;
 
         async function getUserProfile() {
@@ -51,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             mounted = false;
             subscription.unsubscribe();
         };
-    }, [supabase, setUser, setLoading]);
+    }, [setUser, setLoading]);
 
     return <>{children}</>;
 }

@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2, ArrowRight, ShieldCheck, Mail, KeyRound } from 'lucide-react';
-import { createBrowserClient } from '@/lib/supabase/client';
+import { createBrowserClient, hasSupabaseBrowserEnv } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 
 export default function LoginPage() {
@@ -22,8 +22,6 @@ function LoginContent() {
 
     const router = useRouter();
     const searchParams = useSearchParams();
-    const supabase = createBrowserClient();
-
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -35,6 +33,12 @@ function LoginContent() {
         setLoading(true);
 
         try {
+            if (!hasSupabaseBrowserEnv()) {
+                toast.error('Falta configuración de Supabase en el entorno.');
+                return;
+            }
+
+            const supabase = createBrowserClient();
             const { error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
