@@ -30,6 +30,13 @@ const ROLE_DEFAULT_REDIRECT: Record<UserRole, string> = {
     receptionist: '/dashboard/appointments',
 };
 
+function hasSupabaseEnv() {
+    return Boolean(
+        process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    );
+}
+
 function isPublicRoute(pathname: string): boolean {
     return PUBLIC_ROUTES.some(
         (route) => pathname === route || pathname.startsWith(`${route}/`)
@@ -46,6 +53,16 @@ function hasRouteAccess(role: UserRole, pathname: string): boolean {
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
+
+    if (!hasSupabaseEnv()) {
+        if (isPublicRoute(pathname) || pathname.startsWith('/api')) {
+            return NextResponse.next();
+        }
+        const url = request.nextUrl.clone();
+        url.pathname = '/login';
+        url.searchParams.set('redirect', pathname);
+        return NextResponse.redirect(url);
+    }
 
     // 1. Always refresh the session
     const { supabaseResponse, user, supabase } = await updateSession(request);
