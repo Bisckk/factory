@@ -4,126 +4,296 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ─── Mototaller Design Tokens ─── */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
+
+  /* shadcn semantic tokens */
   --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Chart colors — using a monochromatic red scale */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Radius system */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 2.5);
+
+  /* Sidebar */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Custom brand tokens — accessible via Tailwind */
+  --color-success: #16A34A;
+  --color-warning: #D97706;
+  --color-danger: #DC2626;
+  --color-info: #1D4ED8;
 }
 
+/*
+ * Light Mode — Mototaller Identity
+ * Background: Pure white (#FFFFFF)
+ * Primary: Workshop Red (#DC2626)
+ * Text: Near-black (#111827)
+ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
+  /* Surfaces */
+  --background: #FFFFFF;
+  --foreground: #111827;
+  --card: #FFFFFF;
+  --card-foreground: #111827;
+  --popover: #FFFFFF;
+  --popover-foreground: #111827;
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Primary — The Red */
+  --primary: #DC2626;
+  --primary-foreground: #FFFFFF;
+
+  /* Secondary — Subtle gray backgrounds */
+  --secondary: #F3F4F6;
+  --secondary-foreground: #111827;
+
+  /* Muted — For metadata, placeholders */
+  --muted: #F9FAFB;
+  --muted-foreground: #6B7280;
+
+  /* Accent — Interactive hover states */
+  --accent: #F3F4F6;
+  --accent-foreground: #111827;
+
+  /* Destructive — Shares primary red intentionally */
+  --destructive: #DC2626;
+
+  /* Borders — Deliberately subtle */
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: #DC2626;
+
+  /* Charts — Professional, data-focused palette */
+  --chart-1: #DC2626;
+  --chart-2: #111827;
+  --chart-3: #6B7280;
+  --chart-4: #D1D5DB;
+  --chart-5: #F3F4F6;
+
+  /* Radius — 0.5rem as base (8px) */
+  --radius: 0.5rem;
+
+  /* Sidebar */
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #111827;
+  --sidebar-primary: #DC2626;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F3F4F6;
+  --sidebar-accent-foreground: #111827;
+  --sidebar-border: #E5E7EB;
+  --sidebar-ring: #DC2626;
+
+  /* Brand-specific custom properties */
+  --color-primary-hover: #B91C1C;
+  --color-primary-light: #FEF2F2;
+  --color-bg-secondary: #F9FAFB;
+  --color-bg-tertiary: #F3F4F6;
+  --color-text-primary: #111827;
+  --color-text-secondary: #4B5563;
+  --color-text-muted: #9CA3AF;
+  --color-border-default: #E5E7EB;
+  --color-border-hover: #D1D5DB;
+  --color-overlay: #111827;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
   }
+
+  /* Hide number input arrows/spinners for a cleaner UI */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  /* Heading hierarchy — Geist Sans, tight tracking */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-sans tracking-tight;
+    font-weight: 700;
+  }
+
+  /* Monospaced numbers for data display */
+  .font-data {
+    @apply font-mono tabular-nums;
+  }
+}
+
+/* ─── Utility Classes ─── */
+
+/* Surgical red — only for elements that demand attention */
+.accent-red {
+  color: var(--primary);
+}
+
+/* Card with default subtle shadow */
+.card-elevated {
+  @apply bg-card rounded-lg border border-border;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+}
+
+/* Hover state — matches spec: bg-gray-50, never dramatic elevation */
+.hover-subtle {
+  @apply transition-colors duration-150;
+}
+
+.hover-subtle:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+/* Section heading — used in dashboard modules */
+.section-label {
+  @apply text-xs font-medium uppercase tracking-widest;
+  color: var(--color-text-muted);
+}
+
+/* Status indicator dot */
+.status-dot {
+  @apply inline-block h-2 w-2 rounded-full;
+}
+
+.status-dot--active {
+  @apply bg-success;
+}
+
+.status-dot--warning {
+  @apply bg-warning;
+}
+
+.status-dot--danger {
+  @apply bg-danger;
+}
+
+/* Scrollbar styling — minimal, editorial */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-hover);
+}
+
+/* Selection highlight */
+::selection {
+  background-color: var(--color-primary-light);
+  color: var(--color-text-primary);
+}
+
+/* ─── Dashboard Dark Theme ─── */
+/* Applied to the internal dashboard system only, keeping the public site light */
+
+.dashboard-dark {
+  --background: #0A0A0B;
+  --foreground: #F5F5F5;
+  --card: #141417;
+  --card-foreground: #F5F5F5;
+  --popover: #141417;
+  --popover-foreground: #F5F5F5;
+  --muted: #1C1C21;
+  --muted-foreground: #71717A;
+  --accent: #1C1C21;
+  --accent-foreground: #F5F5F5;
+  --border: #27272A;
+  --input: #27272A;
+  --ring: #DC2626;
+  --sidebar: #0F0F12;
+  --sidebar-foreground: #A1A1AA;
+  --sidebar-primary: #DC2626;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #1C1C21;
+  --sidebar-accent-foreground: #F5F5F5;
+  --sidebar-border: #27272A;
+  --color-primary-light: rgba(220, 38, 38, 0.15);
+  --color-bg-secondary: #111114;
+  --color-bg-tertiary: #1C1C21;
+  --color-text-primary: #F5F5F5;
+  --color-text-secondary: #A1A1AA;
+  --color-text-muted: #52525B;
+  --color-border-default: #27272A;
+  --color-border-hover: #3F3F46;
+}
+
+.dashboard-dark .card-elevated {
+  background-color: #141417;
+  border-color: #27272A;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 0 0 1px rgb(255 255 255 / 0.03);
+}
+
+.dashboard-dark ::-webkit-scrollbar-thumb {
+  background: #3F3F46;
+}
+
+.dashboard-dark ::-webkit-scrollbar-thumb:hover {
+  background: #52525B;
 }
