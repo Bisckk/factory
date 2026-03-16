@@ -6,6 +6,9 @@ import sharp from 'sharp';
 
 const INPUT_DIR = path.join(process.cwd(), 'raw_frames');
 const OUTPUT_DIR = path.join(process.cwd(), 'public', 'frames');
+const TARGET_WIDTH = 1440;
+const WEBP_QUALITY = 65;
+const WEBP_EFFORT = 6;
 
 if (!fs.existsSync(INPUT_DIR)) {
     console.error(`❌ Directorio de entrada '${INPUT_DIR}' no encontrado. Por favor créalo y coloca ahí tus .jpg (Ej: frame_0001.jpg a frame_0361.jpg)`);
@@ -34,8 +37,8 @@ async function processFrames() {
         const outputPath = path.join(OUTPUT_DIR, `${baseName}.webp`);
 
         await sharp(inputPath)
-            .resize({ width: 1920, withoutEnlargement: true })
-            .webp({ quality: 90 })
+            .resize({ width: TARGET_WIDTH, withoutEnlargement: true })
+            .webp({ quality: WEBP_QUALITY, effort: WEBP_EFFORT })
             .toFile(outputPath);
 
         count++;
