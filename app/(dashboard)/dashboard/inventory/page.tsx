@@ -4,25 +4,44 @@
  * Inventory Page — Dark Theme
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Package, Search, Plus, MapPin, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth.store';
 import { formatCOP } from '@/lib/utils/format-currency';
+import { useInventoryStore } from '@/stores/inventory.store';
+import { InventoryItemDrawer } from '@/components/dashboard/inventory/inventory-item-drawer';
 
 export default function InventoryPage() {
     const { role } = useAuthStore();
     const [search, setSearch] = useState('');
+    const items = useInventoryStore((s) => s.items);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
     const isMechanic = role === 'mechanic';
     const canEdit = role === 'admin' || role === 'receptionist';
 
-    const MOCK_INVENTORY = [
-        { sku: "YAM-DT-175-PIST", name: "Pistón Standard (Kit)", category: "Motor", stock_quantity: 0, min_stock_level: 2, price: 185000, location: "Estante A-1" },
-        { sku: "SP-NGK-BR9ES", name: "Bujía NGK Racing", category: "Eléctrico", stock_quantity: 12, min_stock_level: 5, price: 25000, location: "Cajón B-3" },
-        { sku: "OIL-IPONE-SAMURAI", name: "Aceite Ipone Samurai Racing 2T", category: "Lubricantes", stock_quantity: 4, min_stock_level: 5, price: 98000, location: "Vitrina Frontal" },
-    ];
+    const filteredItems = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        if (!q) return items;
+        return items.filter((it) => {
+            return (
+                it.name.toLowerCase().includes(q) ||
+                it.sku.toLowerCase().includes(q) ||
+                it.category.toLowerCase().includes(q)
+            );
+        });
+    }, [items, search]);
+
+    const stats = useMemo(() => {
+        const totalSkus = items.length;
+        const critical = items.filter((i) => i.stock_quantity === 0).length;
+        const warning = items.filter((i) => i.stock_quantity > 0 && i.stock_quantity <= i.min_stock_level).length;
+        const inventoryValue = items.reduce((sum, i) => sum + i.price * i.stock_quantity, 0);
+        return { totalSkus, critical, warning, inventoryValue };
+    }, [items]);
 
     return (
         <div className="max-w-7xl mx-auto space-y-8">
@@ -39,7 +58,13 @@ export default function InventoryPage() {
                     </p>
                 </div>
                 {canEdit && (
-                    <button className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-red-600 px-5 text-sm font-semibold text-white hover:bg-red-700 transition-all">
+                    <button
+                        onClick={() => {
+                            setSelectedItemId(null);
+                            setIsDrawerOpen(true);
+                        }}
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-red-600 px-5 text-sm font-semibold text-white hover:bg-red-700 transition-all"
+                    >
                         <Plus className="h-4 w-4" /> Nuevo Artículo
                     </button>
                 )}
@@ -50,20 +75,20 @@ export default function InventoryPage() {
                     <div className="rounded-xl border border-zinc-800 bg-[#141417] p-5 flex items-center justify-between border-l-4 border-l-blue-500/50">
                         <div>
                             <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-1">Total SKUs</p>
-                            <p className="font-mono text-xl font-bold text-blue-400">1,245</p>
+                            <p className="font-mono text-xl font-bold text-blue-400">{stats.totalSkus}</p>
                         </div>
                     </div>
                     <div className="rounded-xl border border-zinc-800 bg-[#141417] p-5 flex items-center justify-between border-l-4 border-l-red-500/50">
                         <div>
                             <p className="text-xs font-semibold uppercase tracking-widest text-red-400 mb-1">Stock Crítico</p>
-                            <p className="font-mono text-xl font-bold text-red-400">2</p>
+                            <p className="font-mono text-xl font-bold text-red-400">{stats.critical}</p>
                         </div>
                         <AlertTriangle className="h-5 w-5 text-red-500" />
                     </div>
                     <div className="rounded-xl border border-zinc-800 bg-[#141417] p-5 flex items-center justify-between border-l-4 border-l-emerald-500/50">
                         <div>
                             <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-1">Valor Inventario</p>
-                            <p className="font-mono text-xl font-bold text-emerald-400">{formatCOP(48500000)}</p>
+                            <p className="font-mono text-xl font-bold text-emerald-400">{formatCOP(stats.inventoryValue)}</p>
                         </div>
                     </div>
                 </div>
@@ -92,15 +117,27 @@ export default function InventoryPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-800/50">
-                            {MOCK_INVENTORY.map((item, i) => {
+                            {filteredItems.map((item, i) => {
                                 const isCritical = item.stock_quantity === 0;
                                 const isWarning = !isCritical && item.stock_quantity <= item.min_stock_level;
+                                const cover = item.images?.[0]?.dataUrl;
                                 return (
-                                    <motion.tr key={item.sku} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
+                                    <motion.tr key={item.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
                                         className="group hover:bg-zinc-800/30 transition-colors">
                                         <td className="px-6 py-4">
-                                            <div className="font-semibold text-zinc-200">{item.name}</div>
-                                            <div className="text-[10px] uppercase font-mono tracking-widest text-zinc-600 mt-1">{item.sku} · {item.category}</div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-11 w-11 rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden flex items-center justify-center shrink-0">
+                                                    {cover ? (
+                                                        <img src={cover} alt="Foto del repuesto" className="h-full w-full object-cover" />
+                                                    ) : (
+                                                        <Package className="h-5 w-5 text-zinc-600" />
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <div className="font-semibold text-zinc-200 truncate">{item.name}</div>
+                                                    <div className="text-[10px] uppercase font-mono tracking-widest text-zinc-600 mt-1 truncate">{item.category}</div>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
@@ -117,11 +154,20 @@ export default function InventoryPage() {
                                         </td>
                                         {!isMechanic && (
                                             <td className="px-6 py-4 text-right">
-                                                {isCritical ? (
-                                                    <button className="text-[10px] uppercase tracking-wider font-bold text-red-400 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-md transition-colors">Comprar</button>
-                                                ) : (
-                                                    <button className="text-[10px] uppercase tracking-wider font-bold text-zinc-400 bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded-md transition-colors">Editar</button>
-                                                )}
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedItemId(item.id);
+                                                        setIsDrawerOpen(true);
+                                                    }}
+                                                    className={cn(
+                                                        "text-[10px] uppercase tracking-wider font-bold px-3 py-1.5 rounded-md transition-colors",
+                                                        isCritical
+                                                            ? "text-red-300 bg-red-500/10 hover:bg-red-500/20"
+                                                            : "text-zinc-300 bg-zinc-800 hover:bg-zinc-700"
+                                                    )}
+                                                >
+                                                    {isCritical ? 'Reabastecer' : 'Editar'}
+                                                </button>
                                             </td>
                                         )}
                                     </motion.tr>
@@ -131,6 +177,12 @@ export default function InventoryPage() {
                     </table>
                 </div>
             </div>
+
+            <InventoryItemDrawer
+                isOpen={isDrawerOpen}
+                onClose={() => setIsDrawerOpen(false)}
+                itemId={selectedItemId}
+            />
         </div>
     );
 }

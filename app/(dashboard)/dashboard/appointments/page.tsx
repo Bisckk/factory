@@ -4,7 +4,7 @@
  * Appointments & Agenda — Dark Theme
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar as CalendarIcon, Clock, User, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -12,20 +12,25 @@ import { useAuthStore } from '@/stores/auth.store';
 import { format, addDays, startOfWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CreateAppointmentDrawer } from '@/components/dashboard/appointments/create-appointment-drawer';
+import { useAppointmentsStore } from '@/stores/appointments.store';
+import { useClientsStore } from '@/stores/clients.store';
 
 export default function AppointmentsPage() {
     const { role } = useAuthStore();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+    const appointments = useAppointmentsStore((s) => s.appointments);
+    const clients = useClientsStore((s) => s.clients);
 
     const isMechanic = role === 'mechanic';
     const canCreate = role === 'admin' || role === 'receptionist';
-
-    const MOCK_APPOINTMENTS = [
-        { time: "08:00 AM", type: "Mantenimiento General", client: "Carlos Martínez", moto: "Yamaha DT 175", status: "confirmed" },
-        { time: "10:30 AM", type: "Revisión Eléctrica", client: "Valentina Torres", moto: "Honda CBR 250", status: "arrived" },
-        { time: "02:00 PM", type: "Porteo y Preparación", client: "Miguel Hernández", moto: "Kawasaki KX 250", status: "pending" },
-    ];
+    const dayKey = format(currentDate, 'yyyy-MM-dd');
+    const dayAppointments = useMemo(() => {
+        return appointments
+            .filter((a) => format(new Date(a.scheduledAt), 'yyyy-MM-dd') === dayKey)
+            .slice()
+            .sort((a, b) => a.scheduledAt - b.scheduledAt);
+    }, [appointments, dayKey]);
 
     const renderMiniCalendar = () => {
         const start = startOfWeek(currentDate, { weekStartsOn: 1 });
@@ -75,14 +80,20 @@ export default function AppointmentsPage() {
             {/* Calendar Strip */}
             <div className="rounded-xl border border-zinc-800 bg-[#141417] p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-4 border-r border-zinc-800 pr-6">
-                    <button className="h-10 w-10 flex items-center justify-center rounded-lg border border-zinc-800 hover:bg-zinc-800 text-zinc-500 transition-colors">
+                    <button
+                        onClick={() => setCurrentDate((d) => addDays(d, -7))}
+                        className="h-10 w-10 flex items-center justify-center rounded-lg border border-zinc-800 hover:bg-zinc-800 text-zinc-500 transition-colors"
+                    >
                         <ChevronLeft className="h-5 w-5" />
                     </button>
                     <div className="text-center min-w-[140px]">
                         <p className="text-lg font-bold text-zinc-100 capitalize leading-none">{format(currentDate, "MMMM", { locale: es })}</p>
                         <p className="text-xs text-zinc-500 uppercase font-semibold tracking-widest mt-1">{format(currentDate, "yyyy")}</p>
                     </div>
-                    <button className="h-10 w-10 flex items-center justify-center rounded-lg border border-zinc-800 hover:bg-zinc-800 text-zinc-500 transition-colors">
+                    <button
+                        onClick={() => setCurrentDate((d) => addDays(d, 7))}
+                        className="h-10 w-10 flex items-center justify-center rounded-lg border border-zinc-800 hover:bg-zinc-800 text-zinc-500 transition-colors"
+                    >
                         <ChevronRight className="h-5 w-5" />
                     </button>
                 </div>
@@ -95,16 +106,21 @@ export default function AppointmentsPage() {
                     <h2 className="text-xs font-medium uppercase tracking-widest text-zinc-500">
                         Citas para el {format(currentDate, "dd 'de' MMMM", { locale: es })}
                     </h2>
-                    <span className="text-xs font-semibold uppercase tracking-widest text-zinc-600">{MOCK_APPOINTMENTS.length} Citas</span>
+                    <span className="text-xs font-semibold uppercase tracking-widest text-zinc-600">{dayAppointments.length} Citas</span>
                 </div>
 
                 <div className="space-y-3 relative">
                     <div className="absolute left-[88px] top-6 bottom-6 w-px border-l-2 border-dashed border-zinc-800 -z-10" />
-                    {MOCK_APPOINTMENTS.map((apt, i) => (
-                        <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} className="flex gap-6 group">
+                    {dayAppointments.map((apt, i) => {
+                        const client = clients.find((c) => c.id === apt.clientId);
+                        const moto = client?.motorcycles.find((m) => m.id === apt.motorcycleId);
+                        const time = format(new Date(apt.scheduledAt), 'hh:mm a', { locale: es });
+                        const timeParts = time.split(' ');
+                        return (
+                        <motion.div key={apt.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }} className="flex gap-6 group">
                             <div className="w-[64px] shrink-0 text-right pt-4">
-                                <span className="font-mono text-xs font-bold text-zinc-400 block leading-none">{apt.time.split(' ')[0]}</span>
-                                <span className="font-mono text-[10px] text-zinc-600 uppercase">{apt.time.split(' ')[1]}</span>
+                                <span className="font-mono text-xs font-bold text-zinc-400 block leading-none">{timeParts[0]}</span>
+                                <span className="font-mono text-[10px] text-zinc-600 uppercase">{timeParts[1] ?? ''}</span>
                             </div>
                             <div className="pt-4 relative flex items-center justify-center w-6">
                                 <span className={cn(
@@ -114,10 +130,13 @@ export default function AppointmentsPage() {
                             </div>
                             <div className="flex-1 rounded-xl border border-zinc-800 bg-[#141417] p-5 flex flex-col sm:flex-row sm:items-center justify-between hover:border-zinc-700 transition-colors cursor-pointer">
                                 <div className="space-y-1">
-                                    <p className="text-sm font-bold text-zinc-200">{apt.type}</p>
+                                    <p className="text-sm font-bold text-zinc-200">{apt.serviceType}</p>
                                     <div className="flex items-center gap-3 text-xs text-zinc-500">
-                                        <span className="flex items-center gap-1"><User className="h-3 w-3" /> {apt.client}</span>
-                                        <span className="flex items-center gap-1 font-semibold border-l border-zinc-800 pl-3"><span className="text-amber-400 font-mono tracking-widest uppercase">{apt.moto}</span></span>
+                                        <span className="flex items-center gap-1"><User className="h-3 w-3" /> {client?.name ?? 'Cliente'}</span>
+                                        <span className="flex items-center gap-1 font-semibold border-l border-zinc-800 pl-3">
+                                            <span className="text-amber-400 font-mono tracking-widest uppercase">{moto?.plate ?? 'SIN-PLACA'}</span>
+                                            <span className="text-zinc-600 font-normal ml-2">{moto ? `${moto.brand} ${moto.model}` : 'Motocicleta'}</span>
+                                        </span>
                                     </div>
                                 </div>
                                 <span className={cn(
@@ -129,7 +148,7 @@ export default function AppointmentsPage() {
                                 </span>
                             </div>
                         </motion.div>
-                    ))}
+                    );})}
                 </div>
             </div>
 

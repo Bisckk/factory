@@ -39,6 +39,7 @@ const ADMIN_NAV: NavSection[] = [
             { label: 'Inventario', href: '/dashboard/inventory', icon: 'Box', roles: ['admin'] },
             { label: 'Agenda', href: '/dashboard/appointments', icon: 'CalendarDays', roles: ['admin'] },
             { label: 'Motos', href: '/dashboard/motorcycles', icon: 'Wrench', roles: ['admin'] },
+            { label: 'Clientes', href: '/dashboard/clients', icon: 'Users', roles: ['admin'] },
         ]
     },
     {
@@ -59,6 +60,7 @@ const MECHANIC_NAV: NavSection[] = [
             { label: 'Agenda', href: '/dashboard/appointments', icon: 'CalendarDays', roles: ['mechanic'] },
             { label: 'Servicios', href: '/dashboard/orders', icon: 'Wrench', roles: ['mechanic'] },
             { label: 'Inventario', href: '/dashboard/inventory', icon: 'Box', roles: ['mechanic'] },
+            { label: 'Clientes', href: '/dashboard/clients', icon: 'Users', roles: ['mechanic'] },
         ]
     }
 ];
@@ -81,7 +83,8 @@ const RECEPTIONIST_NAV: NavSection[] = [
             { label: 'Dashboard General', href: '/dashboard', icon: 'LayoutDashboard', roles: ['receptionist'] },
             { label: 'Órdenes', href: '/dashboard/orders', icon: 'ClipboardList', roles: ['receptionist'] },
             { label: 'Agenda', href: '/dashboard/appointments', icon: 'CalendarDays', roles: ['receptionist'] },
-            { label: 'Motos y Clientes', href: '/dashboard/motorcycles', icon: 'Wrench', roles: ['receptionist'] },
+            { label: 'Clientes', href: '/dashboard/clients', icon: 'Users', roles: ['receptionist'] },
+            { label: 'Motos', href: '/dashboard/motorcycles', icon: 'Wrench', roles: ['receptionist'] },
             { label: 'Inventario de Repuestos', href: '/dashboard/inventory', icon: 'Box', roles: ['receptionist'] },
         ]
     }

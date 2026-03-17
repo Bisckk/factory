@@ -6,13 +6,15 @@
  * Client / motorcycle creation is handled in the Clients module.
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Search, Bike, Wrench, ChevronDown,
     User, Phone, Plus, Check, AlertCircle
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useClientsStore } from '@/stores/clients.store';
 
 interface CreateOrderDrawerProps {
     isOpen: boolean;
@@ -26,35 +28,10 @@ const MOCK_MECHANICS = [
     { id: 'mech_3', name: 'Luis Torres', speciality: 'Suspensión' },
 ];
 
-const MOCK_EXISTING_CLIENTS = [
-    {
-        id: 'c_1', name: 'Carlos Martínez', phone: '300 123 4567', cedula: '1020304050',
-        motorcycles: [
-            { id: 'm_1', brand: 'Yamaha', model: 'DT 175', plate: 'ABC-123' },
-            { id: 'm_2', brand: 'Honda', model: 'XR 150', plate: 'XYZ-987' },
-        ],
-    },
-    {
-        id: 'c_2', name: 'Andrea López', phone: '310 987 6543', cedula: '1098765432',
-        motorcycles: [
-            { id: 'm_3', brand: 'Pulsar', model: 'NS200', plate: 'QWE-456' },
-        ],
-    },
-    {
-        id: 'c_3', name: 'Diego Ramírez', phone: '320 456 7890', cedula: '1076543210',
-        motorcycles: [],
-    },
-    {
-        id: 'c_4', name: 'Sofía Hernández', phone: '315 222 3344', cedula: '1112223344',
-        motorcycles: [
-            { id: 'm_4', brand: 'Suzuki', model: 'AX 100', plate: 'RTY-789' },
-            { id: 'm_5', brand: 'KTM', model: 'Duke 200', plate: 'UIO-321' },
-            { id: 'm_6', brand: 'Bajaj', model: 'Boxer CT100', plate: 'PAS-654' },
-        ],
-    },
-];
-
 export function CreateOrderDrawer({ isOpen, onClose }: CreateOrderDrawerProps) {
+    const clients = useClientsStore((s) => s.clients);
+    const addMotorcycle = useClientsStore((s) => s.addMotorcycle);
+
     // ─── Client Selection ───
     const [clientSearch, setClientSearch] = useState('');
     const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
@@ -67,20 +44,40 @@ export function CreateOrderDrawer({ isOpen, onClose }: CreateOrderDrawerProps) {
     // ─── Mechanic Selection ───
     const [isMechanicOpen, setIsMechanicOpen] = useState(false);
     const [selectedMechanicId, setSelectedMechanicId] = useState<string | null>(null);
+    const [serviceNotes, setServiceNotes] = useState('');
 
     // Derived data
-    const selectedClient = MOCK_EXISTING_CLIENTS.find(c => c.id === selectedClientId);
+    const selectedClient = clients.find((c) => c.id === selectedClientId);
     const selectedMechanic = MOCK_MECHANICS.find(m => m.id === selectedMechanicId);
 
-    const filteredClients = MOCK_EXISTING_CLIENTS.filter(c => {
-        if (!clientSearch.trim()) return false;
-        const q = clientSearch.toLowerCase();
-        return (
-            c.name.toLowerCase().includes(q) ||
-            c.phone.includes(q) ||
-            c.cedula.includes(q)
-        );
-    });
+    const filteredClients = useMemo(() => {
+        const q = clientSearch.trim().toLowerCase();
+        const base = [...clients].sort((a, b) => {
+            if (b.active_orders !== a.active_orders) return b.active_orders - a.active_orders;
+            return a.name.localeCompare(b.name);
+        });
+
+        const list = q
+            ? base.filter((c) => {
+                return (
+                    c.name.toLowerCase().includes(q) ||
+                    c.phone.includes(q) ||
+                    c.cedula.includes(q)
+                );
+            })
+            : base;
+
+        return list.slice(0, 16);
+    }, [clientSearch, clients]);
+
+    const canSubmit = useMemo(() => {
+        if (!selectedClient) return false;
+        if (!serviceNotes.trim()) return false;
+        if (isAddingNewMoto) {
+            return Boolean(newMoto.plate.trim() && newMoto.brand.trim() && newMoto.model.trim() && newMoto.km.trim());
+        }
+        return Boolean(selectedMotoId);
+    }, [isAddingNewMoto, newMoto.brand, newMoto.km, newMoto.model, newMoto.plate, selectedClient, selectedMotoId, serviceNotes]);
 
     const handleClose = () => {
         onClose();
@@ -93,6 +90,7 @@ export function CreateOrderDrawer({ isOpen, onClose }: CreateOrderDrawerProps) {
             setNewMoto({ plate: '', brand: '', model: '', km: '' });
             setSelectedMechanicId(null);
             setIsMechanicOpen(false);
+            setServiceNotes('');
         }, 300);
     };
 
@@ -152,44 +150,52 @@ export function CreateOrderDrawer({ isOpen, onClose }: CreateOrderDrawerProps) {
                                         </div>
 
                                         {/* Search Results */}
-                                        {clientSearch.trim() && (
-                                            <div className="border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/50">
-                                                {filteredClients.length === 0 ? (
-                                                    <div className="p-6 text-center space-y-2">
-                                                        <AlertCircle className="h-6 w-6 text-zinc-600 mx-auto" />
-                                                        <p className="text-xs text-zinc-500 font-medium">No se encontró ningún cliente</p>
-                                                        <p className="text-[10px] text-zinc-600">Puedes registrar nuevos clientes desde el módulo de Clientes.</p>
-                                                    </div>
-                                                ) : (
-                                                    <div className="divide-y divide-zinc-800/50 max-h-48 overflow-y-auto">
-                                                        {filteredClients.map((client) => (
-                                                            <button
-                                                                key={client.id}
-                                                                onClick={() => {
-                                                                    setSelectedClientId(client.id);
-                                                                    setClientSearch('');
-                                                                    setSelectedMotoId(null);
-                                                                    setIsAddingNewMoto(false);
-                                                                }}
-                                                                className="w-full flex items-center gap-3 p-3 hover:bg-zinc-800/50 transition-colors text-left"
-                                                            >
-                                                                <div className="h-9 w-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0">
-                                                                    <User className="h-4 w-4 text-zinc-400" />
-                                                                </div>
-                                                                <div className="min-w-0">
-                                                                    <p className="text-sm font-bold text-zinc-200 truncate">{client.name}</p>
-                                                                    <div className="flex items-center gap-2 mt-0.5">
-                                                                        <span className="text-[10px] text-zinc-500 flex items-center gap-1"><Phone className="h-3 w-3" /> {client.phone}</span>
-                                                                        <span className="text-[10px] text-zinc-600">•</span>
-                                                                        <span className="text-[10px] text-zinc-500">{client.motorcycles.length} moto{client.motorcycles.length !== 1 ? 's' : ''}</span>
-                                                                    </div>
-                                                                </div>
-                                                            </button>
-                                                        ))}
-                                                    </div>
+                                        <div className="border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/50">
+                                            <div className="px-4 py-3 flex items-center justify-between bg-zinc-900/40 border-b border-zinc-800">
+                                                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                                                    {clientSearch.trim() ? 'Resultados' : 'Clientes'}
+                                                </span>
+                                                {!clientSearch.trim() && (
+                                                    <span className="text-[10px] text-zinc-600">
+                                                        Escribe para buscar
+                                                    </span>
                                                 )}
                                             </div>
-                                        )}
+                                            {clientSearch.trim() && filteredClients.length === 0 ? (
+                                                <div className="p-6 text-center space-y-2">
+                                                    <AlertCircle className="h-6 w-6 text-zinc-600 mx-auto" />
+                                                    <p className="text-xs text-zinc-500 font-medium">No se encontró ningún cliente</p>
+                                                    <p className="text-[10px] text-zinc-600">Puedes registrar nuevos clientes desde el módulo de Clientes.</p>
+                                                </div>
+                                            ) : (
+                                                <div className="divide-y divide-zinc-800/50 max-h-72 min-h-[320px] overflow-y-auto">
+                                                    {filteredClients.map((client) => (
+                                                        <button
+                                                            key={client.id}
+                                                            onClick={() => {
+                                                                setSelectedClientId(client.id);
+                                                                setClientSearch('');
+                                                                setSelectedMotoId(null);
+                                                                setIsAddingNewMoto(false);
+                                                            }}
+                                                            className="w-full flex items-center gap-4 px-4 py-4 hover:bg-zinc-800/50 transition-colors text-left"
+                                                        >
+                                                            <div className="h-11 w-11 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0">
+                                                                <User className="h-5 w-5 text-zinc-400" />
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className="text-[15px] font-extrabold text-zinc-200 truncate leading-tight">{client.name}</p>
+                                                                <div className="flex items-center gap-2 mt-0.5">
+                                                                    <span className="text-[11px] text-zinc-500 flex items-center gap-1"><Phone className="h-3.5 w-3.5" /> {client.phone}</span>
+                                                                    <span className="text-[11px] text-zinc-600">•</span>
+                                                                    <span className="text-[11px] text-zinc-500">{client.motorcycles.length} moto{client.motorcycles.length !== 1 ? 's' : ''}</span>
+                                                                </div>
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 ) : (
                                     /* Selected Client Card */
@@ -379,6 +385,8 @@ export function CreateOrderDrawer({ isOpen, onClose }: CreateOrderDrawerProps) {
                                             <textarea
                                                 rows={3}
                                                 placeholder="Describe los fallos reportados por el cliente o el servicio solicitado..."
+                                                value={serviceNotes}
+                                                onChange={(e) => setServiceNotes(e.target.value)}
                                                 className={cn(inputClass, "resize-none")}
                                             />
                                         </div>
@@ -485,10 +493,42 @@ export function CreateOrderDrawer({ isOpen, onClose }: CreateOrderDrawerProps) {
                         <div className="p-6 border-t border-zinc-800 bg-[#141417] shrink-0">
                             <button
                                 type="button"
-                                disabled={!selectedClient || (!selectedMotoId && !isAddingNewMoto)}
+                                disabled={!canSubmit}
+                                onClick={() => {
+                                    if (!selectedClient) {
+                                        toast.error('Selecciona un cliente.');
+                                        return;
+                                    }
+                                    if (!serviceNotes.trim()) {
+                                        toast.error('Describe el motivo de ingreso.');
+                                        return;
+                                    }
+                                    if (isAddingNewMoto) {
+                                        if (!newMoto.plate.trim() || !newMoto.brand.trim() || !newMoto.model.trim() || !newMoto.km.trim()) {
+                                            toast.error('Completa la información de la moto nueva.');
+                                            return;
+                                        }
+                                        addMotorcycle(selectedClient.id, {
+                                            plate: newMoto.plate.trim().toUpperCase(),
+                                            brand: newMoto.brand.trim(),
+                                            model: newMoto.model.trim(),
+                                            km: newMoto.km.trim(),
+                                        });
+                                    } else if (!selectedMotoId) {
+                                        toast.error('Selecciona una moto.');
+                                        return;
+                                    }
+
+                                    toast.success('Orden creada.', {
+                                        description: selectedMechanic
+                                            ? `Asignada a ${selectedMechanic.name}.`
+                                            : 'Quedó sin asignar.',
+                                    });
+                                    handleClose();
+                                }}
                                 className={cn(
                                     "w-full flex justify-center py-4 px-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
-                                    selectedClient && (selectedMotoId || isAddingNewMoto)
+                                    canSubmit
                                         ? "text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/10"
                                         : "text-zinc-600 bg-zinc-800 border border-zinc-700 cursor-not-allowed"
                                 )}
