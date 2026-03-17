@@ -57,6 +57,16 @@ const initialAppointments: Appointment[] = [
         createdAt: Date.now() - 1000 * 60 * 60 * 24 * 4,
         updatedAt: Date.now() - 1000 * 60 * 60 * 24 * 1,
     },
+    {
+        id: 'apt_4',
+        scheduledAt: new Date().setHours(16, 0, 0, 0),
+        clientId: 'c_5',
+        motorcycleId: 'm_7',
+        serviceType: 'Cambio de Aceite',
+        status: 'pending',
+        createdAt: Date.now() - 1000 * 60 * 60 * 24 * 1,
+        updatedAt: Date.now(),
+    },
 ];
 
 type AppointmentsState = {
@@ -105,8 +115,8 @@ export const useAppointmentsStore = create<AppointmentsState>()(
             },
         }),
         {
-            name: 'mototaller_appointments_v1',
-            version: 1,
+            name: 'mototaller_appointments_v2',
+            version: 2,
         }
     )
 );

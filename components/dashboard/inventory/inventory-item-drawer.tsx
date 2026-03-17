@@ -8,6 +8,7 @@ import { CheckCircle2, Crop, ImagePlus, Package, Pencil, Save, Star, Trash2, Upl
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useInventoryStore, type InventoryImage } from '@/stores/inventory.store';
+import { useAuthStore } from '@/stores/auth.store';
 
 type InventoryItemDrawerProps = {
     isOpen: boolean;
@@ -91,6 +92,8 @@ async function getCroppedDataUrl(imageSrc: string, crop: { x: number; y: number;
 
 export function InventoryItemDrawer({ isOpen, onClose, itemId }: InventoryItemDrawerProps) {
     const isEdit = Boolean(itemId);
+    const { role } = useAuthStore();
+    const canEdit = role === 'admin' || role === 'receptionist';
 
     const item = useInventoryStore((s) => (itemId ? s.getItem(itemId) : undefined));
     const addItem = useInventoryStore((s) => s.addItem);
@@ -178,6 +181,10 @@ export function InventoryItemDrawer({ isOpen, onClose, itemId }: InventoryItemDr
     }, [form]);
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
+        if (!canEdit) {
+            toast.error('Solo administración puede editar el inventario.');
+            return;
+        }
         const slots = Math.max(0, 6 - images.length);
         if (slots === 0) {
             toast.error('Máximo 6 fotos por artículo.');
@@ -199,13 +206,14 @@ export function InventoryItemDrawer({ isOpen, onClose, itemId }: InventoryItemDr
         } catch {
             toast.error('No se pudo procesar la imagen.');
         }
-    }, [images.length]);
+    }, [canEdit, images.length]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
         accept: { 'image/*': [] },
         multiple: true,
         maxFiles: 6,
+        disabled: !canEdit,
     });
 
     const handleClose = () => {
@@ -316,6 +324,10 @@ export function InventoryItemDrawer({ isOpen, onClose, itemId }: InventoryItemDr
                                                                 type="button"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
+                                                                    if (!canEdit) {
+                                                                        toast.error('Solo administración puede editar el inventario.');
+                                                                        return;
+                                                                    }
                                                                     setImages((prev) => {
                                                                         const cover = prev.find((p) => p.id === active.id);
                                                                         if (!cover) return prev;
@@ -341,6 +353,10 @@ export function InventoryItemDrawer({ isOpen, onClose, itemId }: InventoryItemDr
                                                                 type="button"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
+                                                                    if (!canEdit) {
+                                                                        toast.error('Solo administración puede editar el inventario.');
+                                                                        return;
+                                                                    }
                                                                     setCrop({ x: 0, y: 0 });
                                                                     setZoom(1);
                                                                     setCroppedAreaPixels(null);
@@ -355,6 +371,10 @@ export function InventoryItemDrawer({ isOpen, onClose, itemId }: InventoryItemDr
                                                                 type="button"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
+                                                                    if (!canEdit) {
+                                                                        toast.error('Solo administración puede editar el inventario.');
+                                                                        return;
+                                                                    }
                                                                     setImages((prev) => prev.filter((p) => p.id !== active.id));
                                                                     toast.success('Foto eliminada.');
                                                                 }}
@@ -522,6 +542,10 @@ export function InventoryItemDrawer({ isOpen, onClose, itemId }: InventoryItemDr
                                 <button
                                     type="button"
                                     onClick={() => {
+                                        if (!canEdit) {
+                                            toast.error('Solo administración puede editar el inventario.');
+                                            return;
+                                        }
                                         const ok = window.confirm('¿Eliminar este artículo del inventario?');
                                         if (!ok) return;
                                         deleteItem(itemId);
@@ -536,8 +560,12 @@ export function InventoryItemDrawer({ isOpen, onClose, itemId }: InventoryItemDr
 
                             <button
                                 type="button"
-                                disabled={!canSubmit || isSaving}
+                                disabled={!canEdit || !canSubmit || isSaving}
                                 onClick={async () => {
+                                    if (!canEdit) {
+                                        toast.error('Solo administración puede editar el inventario.');
+                                        return;
+                                    }
                                     if (!canSubmit) {
                                         toast.error('Completa nombre, categoría, ubicación, stock y precio.');
                                         return;
@@ -573,7 +601,7 @@ export function InventoryItemDrawer({ isOpen, onClose, itemId }: InventoryItemDr
                                 }}
                                 className={cn(
                                     'w-full flex justify-center py-4 px-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-all',
-                                    canSubmit && !isSaving
+                                    canEdit && canSubmit && !isSaving
                                         ? 'text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/10'
                                         : 'text-zinc-600 bg-zinc-800 border border-zinc-700 cursor-not-allowed'
                                 )}

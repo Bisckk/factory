@@ -46,6 +46,8 @@ const ADMIN_NAV: NavSection[] = [
         label: 'Administración',
         items: [
             { label: 'Contabilidad', href: '/dashboard/accounting', icon: 'DollarSign', roles: ['admin'] },
+            { label: 'Facturas', href: '/dashboard/invoices', icon: 'ClipboardList', roles: ['admin'] },
+            { label: 'Nómina', href: '/dashboard/payroll', icon: 'Users', roles: ['admin'] },
             { label: 'Personal', href: '/dashboard/staff', icon: 'Users', roles: ['admin'] },
             { label: 'Configuración', href: '/dashboard/settings', icon: 'Settings', roles: ['admin'] },
         ]

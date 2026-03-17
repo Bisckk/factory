@@ -226,7 +226,57 @@ export default function ClientsPage() {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="p-4 space-y-3 md:hidden">
+                    {filteredClients.length === 0 ? (
+                        <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-8 text-center">
+                            <User className="h-8 w-8 text-zinc-700 mb-3 mx-auto" />
+                            <p className="text-sm font-medium text-zinc-500">No se encontraron clientes</p>
+                        </div>
+                    ) : (
+                        filteredClients.map((client) => (
+                            <button
+                                key={client.id}
+                                onClick={() => {
+                                    setSelectedClientId(client.id);
+                                    setIsClientDrawerOpen(true);
+                                }}
+                                className="w-full text-left rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 hover:bg-zinc-800/30 transition-colors"
+                            >
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-extrabold text-zinc-200 truncate">{client.name}</p>
+                                        <p className="text-[10px] text-zinc-600 mt-1 font-mono">C.C. {client.cedula}</p>
+                                    </div>
+                                    <span
+                                        className={cn(
+                                            'inline-flex items-center justify-center h-7 min-w-7 px-2 rounded-full font-extrabold border text-[11px]',
+                                            client.active_orders === 0
+                                                ? 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                                                : client.active_orders >= 4
+                                                    ? 'bg-red-500/10 text-red-500 border-red-500/20'
+                                                    : client.active_orders >= 2
+                                                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                                        : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                        )}
+                                        title="Órdenes activas"
+                                    >
+                                        {client.active_orders}
+                                    </span>
+                                </div>
+                                <div className="mt-3 flex items-center justify-between gap-3">
+                                    <span className="flex items-center gap-1.5 text-xs text-zinc-400">
+                                        <Phone className="h-3.5 w-3.5" /> {client.phone}
+                                    </span>
+                                    <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-600">
+                                        {client.motorcycles.length} moto{client.motorcycles.length !== 1 ? 's' : ''}
+                                    </span>
+                                </div>
+                            </button>
+                        ))
+                    )}
+                </div>
+
+                <div className="overflow-x-auto hidden md:block">
                     <table className="w-full text-left text-sm whitespace-nowrap">
                         <thead className="bg-zinc-900/50 text-xs uppercase tracking-widest text-zinc-500">
                             <tr>
@@ -323,4 +373,3 @@ export default function ClientsPage() {
         </div>
     );
 }
-

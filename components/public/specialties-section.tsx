@@ -4,9 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 
 const TOTAL_FRAMES = 361;
-const MULTIPLIER = 9;
-// 100vh for the sticky part, the rest is the scroll track
-const CONTAINER_HEIGHT = `calc(100vh + ${TOTAL_FRAMES * MULTIPLIER}px)`;
 
 export function SpecialtiesSection() {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -20,11 +17,13 @@ export function SpecialtiesSection() {
     const [imagesReady, setImagesReady] = useState(false);
 
     useEffect(() => {
-        const mobile = window.innerWidth < 768;
-        setIsMobile(mobile);
+        const media = window.matchMedia('(max-width: 767px)');
+        const setFromMedia = () => setIsMobile(media.matches);
+        setFromMedia();
+        media.addEventListener?.('change', setFromMedia);
 
         // Optimization: on mobile, load fewer frames if specified, e.g. every 2
-        const step = mobile ? 2 : 1;
+        const step = media.matches ? 2 : 1;
         const framesToPreload: number[] = [];
 
         for (let i = 1; i <= TOTAL_FRAMES; i += step) {
@@ -61,6 +60,10 @@ export function SpecialtiesSection() {
                 handleLoadComplete();
             };
         });
+
+        return () => {
+            media.removeEventListener?.('change', setFromMedia);
+        };
     }, []);
 
     // Draw helper
@@ -158,8 +161,7 @@ export function SpecialtiesSection() {
                 // Get display density (e.g. 2 for Retina, 3 for modern phones)
                 const dpr = window.devicePixelRatio || 1;
 
-                // Account for the manual scale-[1.33] CSS class the user added
-                const cssScale = 1.33;
+                const cssScale = isMobile ? 1 : 1.33;
 
                 // Final supersampling factor
                 const scaleFactor = dpr * cssScale;
@@ -182,25 +184,26 @@ export function SpecialtiesSection() {
                 window.cancelAnimationFrame(animationFrameId);
             }
         };
-    }, [imagesReady]);
+    }, [imagesReady, isMobile]);
 
     const loadingProgress = totalToLoad ? Math.floor((loaded / totalToLoad) * 100) : 0;
+    const containerHeight = `calc(100svh + ${TOTAL_FRAMES * (isMobile ? 6 : 9)}px)`;
 
     return (
         <div
             ref={containerRef}
             className="relative"
-            style={{ height: CONTAINER_HEIGHT }}
+            style={{ height: containerHeight }}
         >
-            <section id="especialidades" className="sticky top-0 h-screen w-full flex items-center bg-white text-black py-24 overflow-hidden">
+            <section id="especialidades" className="sticky top-0 h-[100svh] md:h-screen w-full flex items-center bg-white text-black py-12 md:py-24 overflow-hidden">
                 <div className="w-full max-w-7xl mx-auto px-6 h-full flex flex-col justify-center">
                     <div className="grid md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
                         {/* Text Content */}
                         <div className="space-y-6 z-20 flex flex-col justify-center">
-                            <h2 className="text-4xl font-black uppercase tracking-tighter">
+                            <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter">
                                 Nuestra Sangre <br /> es la Mezcla.
                             </h2>
-                            <p className="text-gray-500 max-w-lg leading-relaxed text-lg">
+                            <p className="text-gray-500 max-w-lg leading-relaxed text-base sm:text-lg">
                                 Mientras el mundo avanza hacia lo genérico, nosotros perfeccionamos lo clásico. Somos los cirujanos del motor 2 tiempos.
                             </p>
                             <ul className="space-y-4 pt-4">
@@ -209,7 +212,7 @@ export function SpecialtiesSection() {
                                     "Rectificado de cilindros de alta precisión",
                                     "Sistemas eléctricos y mejoras de encendido"
                                 ].map((item, i) => (
-                                    <li key={i} className="flex items-center gap-4 text-sm font-bold uppercase tracking-wide border-b border-gray-100 pb-4">
+                                    <li key={i} className="flex items-center gap-4 text-xs sm:text-sm font-bold uppercase tracking-wide border-b border-gray-100 pb-4">
                                         <span className="text-red-500 font-mono">0{i + 1}</span>
                                         {item}
                                     </li>
@@ -251,7 +254,7 @@ export function SpecialtiesSection() {
                         </div>
 
                         {/* Image/Canvas Container */}
-                        <div className="relative w-full h-[900px] lg:h-[1300px] scale-[1.33] translate-x-[10px] mix-blend-multiply pointer-events-none flex items-center justify-center z-10">
+                        <div className="relative w-full h-[340px] sm:h-[520px] md:h-[900px] lg:h-[1300px] md:scale-[1.33] md:translate-x-[10px] mix-blend-multiply pointer-events-none flex items-center justify-center z-10">
                             <>
                                 {/* Fallback/Shimmer state without gray background */}
                                 <div

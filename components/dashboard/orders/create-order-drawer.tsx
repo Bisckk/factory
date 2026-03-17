@@ -15,22 +15,23 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useClientsStore } from '@/stores/clients.store';
+import { useStaffStore } from '@/stores/staff.store';
 
 interface CreateOrderDrawerProps {
     isOpen: boolean;
     onClose: () => void;
 }
 
-// ─── Mock Data ───
-const MOCK_MECHANICS = [
-    { id: 'mech_1', name: 'Juan Pérez', speciality: 'Motor 2T / 4T' },
-    { id: 'mech_2', name: 'Andrés Gómez', speciality: 'Electricidad' },
-    { id: 'mech_3', name: 'Luis Torres', speciality: 'Suspensión' },
-];
-
 export function CreateOrderDrawer({ isOpen, onClose }: CreateOrderDrawerProps) {
     const clients = useClientsStore((s) => s.clients);
     const addMotorcycle = useClientsStore((s) => s.addMotorcycle);
+    const staff = useStaffStore((s) => s.staff);
+    const mechanics = useMemo(() => {
+        return staff
+            .filter((m) => m.role === 'mechanic' && m.status === 'active')
+            .slice()
+            .sort((a, b) => a.fullName.localeCompare(b.fullName));
+    }, [staff]);
 
     // ─── Client Selection ───
     const [clientSearch, setClientSearch] = useState('');
@@ -48,7 +49,7 @@ export function CreateOrderDrawer({ isOpen, onClose }: CreateOrderDrawerProps) {
 
     // Derived data
     const selectedClient = clients.find((c) => c.id === selectedClientId);
-    const selectedMechanic = MOCK_MECHANICS.find(m => m.id === selectedMechanicId);
+    const selectedMechanic = mechanics.find((m) => m.id === selectedMechanicId);
 
     const filteredClients = useMemo(() => {
         const q = clientSearch.trim().toLowerCase();
@@ -406,7 +407,7 @@ export function CreateOrderDrawer({ isOpen, onClose }: CreateOrderDrawerProps) {
                                                     )}
                                                 >
                                                     {selectedMechanic ? (
-                                                        <span className="text-zinc-200 font-medium">{selectedMechanic.name}</span>
+                                                        <span className="text-zinc-200 font-medium">{selectedMechanic.fullName}</span>
                                                     ) : (
                                                         <span className="text-zinc-600">Selecciona un mecánico...</span>
                                                     )}
@@ -443,7 +444,7 @@ export function CreateOrderDrawer({ isOpen, onClose }: CreateOrderDrawerProps) {
                                                             </button>
 
                                                             {/* Mechanic list */}
-                                                            {MOCK_MECHANICS.map((mech) => {
+                                                            {mechanics.map((mech) => {
                                                                 const isActive = selectedMechanicId === mech.id;
                                                                 return (
                                                                     <button
@@ -466,11 +467,11 @@ export function CreateOrderDrawer({ isOpen, onClose }: CreateOrderDrawerProps) {
                                                                                     ? "bg-red-500/20 border-red-500/30 text-red-400"
                                                                                     : "bg-zinc-800 border-zinc-700 text-zinc-500"
                                                                             )}>
-                                                                                {mech.name.split(' ').map(n => n[0]).join('')}
+                                                                                {mech.fullName.split(' ').filter(Boolean).slice(0, 2).map(n => n[0]).join('')}
                                                                             </div>
                                                                             <div className="text-left">
-                                                                                <p className="text-sm font-semibold">{mech.name}</p>
-                                                                                <p className="text-[10px] text-zinc-500">{mech.speciality}</p>
+                                                                                <p className="text-sm font-semibold">{mech.fullName}</p>
+                                                                                <p className="text-[10px] text-zinc-500">{mech.phone}</p>
                                                                             </div>
                                                                         </div>
                                                                         {isActive && <Check className="h-4 w-4 text-red-400" />}
@@ -481,7 +482,7 @@ export function CreateOrderDrawer({ isOpen, onClose }: CreateOrderDrawerProps) {
                                                     )}
                                                 </AnimatePresence>
                                             </div>
-                                            <p className="text-[10px] text-zinc-600 mt-1.5 ml-1">Solo el Administrador puede registrar nuevos mecánicos en el sistema.</p>
+                                            <p className="text-[10px] text-zinc-600 mt-1.5 ml-1">Los mecánicos se gestionan desde el módulo de Personal.</p>
                                         </div>
                                     </motion.section>
                                 )}
@@ -521,7 +522,7 @@ export function CreateOrderDrawer({ isOpen, onClose }: CreateOrderDrawerProps) {
 
                                     toast.success('Orden creada.', {
                                         description: selectedMechanic
-                                            ? `Asignada a ${selectedMechanic.name}.`
+                                            ? `Asignada a ${selectedMechanic.fullName}.`
                                             : 'Quedó sin asignar.',
                                     });
                                     handleClose();

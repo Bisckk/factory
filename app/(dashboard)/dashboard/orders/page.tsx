@@ -237,7 +237,74 @@ export default function OrdersPage() {
                             </div>
 
                             {/* Table */}
-                            <div className="overflow-x-auto">
+                            <div className="p-4 space-y-3 md:hidden">
+                                {filteredOrders.length === 0 ? (
+                                    <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-8 text-center">
+                                        <Wrench className="h-8 w-8 text-zinc-700 mb-3 mx-auto" />
+                                        <p className="text-sm font-medium text-zinc-500">No se encontraron servicios</p>
+                                    </div>
+                                ) : (
+                                    filteredOrders.map((order) => (
+                                        <div
+                                            key={order.id}
+                                            className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-3"
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <p className="font-mono text-xs font-bold text-zinc-200">{order.order_number}</p>
+                                                    <p className="text-xs text-zinc-500 mt-1 truncate">{order.client}</p>
+                                                </div>
+                                                <span className={cn(
+                                                    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-wide",
+                                                    ORDER_STATUS_COLORS[order.status]
+                                                )}>
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                                                    {ORDER_STATUS_LABELS[order.status]}
+                                                </span>
+                                            </div>
+
+                                            <div className="rounded-lg border border-zinc-800 bg-[#141417] px-3 py-2">
+                                                <p className="text-xs text-zinc-400">{order.motorcycle}</p>
+                                            </div>
+
+                                            <div className="flex items-center justify-between gap-3">
+                                                <div className="flex items-center gap-2">
+                                                    <Clock className="h-4 w-4 text-zinc-500" />
+                                                    <span className={cn(
+                                                        "text-xs font-semibold",
+                                                        order.delivery_urgency === 'overdue' ? "text-red-400" :
+                                                            order.delivery_urgency === 'today' ? "text-amber-400" : "text-zinc-400"
+                                                    )}>
+                                                        {order.delivery_date}
+                                                    </span>
+                                                </div>
+                                                {!isMechanic && (
+                                                    <span className={cn(
+                                                        "text-xs",
+                                                        order.mechanic === 'Sin asignar' ? "text-red-400 font-semibold italic" : "text-zinc-400"
+                                                    )}>
+                                                        {order.mechanic}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center justify-end gap-2 pt-2">
+                                                {isMechanic ? (
+                                                    <button className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 px-3 py-2 rounded-md transition-colors">
+                                                        <Eye className="h-3 w-3" /> Ver detalle
+                                                    </button>
+                                                ) : (
+                                                    <button className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-zinc-500 hover:text-zinc-100 transition-colors py-2 px-3 border border-zinc-800 rounded-lg hover:bg-zinc-800">
+                                                        Gestionar
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+
+                            <div className="overflow-x-auto hidden md:block">
                                 <table className="w-full text-left text-sm whitespace-nowrap">
                                     <thead className="bg-zinc-900/50 text-xs uppercase tracking-widest text-zinc-500">
                                         <tr>

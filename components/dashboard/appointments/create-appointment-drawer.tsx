@@ -2,12 +2,17 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { addMinutes, format } from 'date-fns';
-import { AlertCircle, Bike, CalendarPlus, Check, Clock, FileText, IdCard, Phone, Plus, Search, User, X } from 'lucide-react';
+import { addMinutes, format, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { AlertCircle, Bike, CalendarPlus, Check, Clock, FileText, IdCard, Phone, Plus, Search, User, X, Calendar as CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useClientsStore } from '@/stores/clients.store';
 import { useAppointmentsStore } from '@/stores/appointments.store';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CreateAppointmentDrawerProps {
     isOpen: boolean;
@@ -142,12 +147,30 @@ export function CreateAppointmentDrawer({ isOpen, onClose }: CreateAppointmentDr
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">Día *</label>
-                                        <input
-                                            type="date"
-                                            value={date}
-                                            onChange={(e) => setDate(e.target.value)}
-                                            className={inputClass}
-                                        />
+                                        <Popover>
+                                            <PopoverTrigger className={cn(
+                                                buttonVariants({ variant: "outline" }),
+                                                "w-full justify-start text-left font-medium px-4 py-6 bg-zinc-900/50 border-zinc-800 hover:bg-zinc-900 hover:text-white rounded-xl",
+                                                !date && "text-muted-foreground"
+                                            )}>
+                                                <CalendarIcon className="mr-2 h-4 w-4 text-zinc-500" />
+                                                {date ? (
+                                                    <span className="text-sm text-zinc-200">{format(parseISO(date), "PPP", { locale: es })}</span>
+                                                ) : (
+                                                    <span className="text-sm text-zinc-700">Seleccionar fecha</span>
+                                                )}
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0 border-zinc-800 bg-[#141417]" align="start">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={date ? parseISO(date) : undefined}
+                                                    onSelect={(d) => setDate(d ? format(d, 'yyyy-MM-dd') : '')}
+                                                    initialFocus
+                                                    locale={es}
+                                                    className="p-3"
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
                                     </div>
                                     <div>
                                         <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">Hora *</label>
@@ -210,33 +233,35 @@ export function CreateAppointmentDrawer({ isOpen, onClose }: CreateAppointmentDr
                                                     </button>
                                                 </div>
                                             ) : (
-                                                <div className="divide-y divide-zinc-800/50 max-h-56 overflow-y-auto">
-                                                    {filteredClients.map((client) => (
-                                                        <button
-                                                            key={client.id}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setSelectedClientId(client.id);
-                                                                setClientSearch('');
-                                                                setSelectedMotoId(null);
-                                                                setIsAddingNewMoto(client.motorcycles.length === 0);
-                                                            }}
-                                                            className="w-full flex items-center gap-4 px-4 py-4 hover:bg-zinc-800/50 transition-colors text-left"
-                                                        >
-                                                            <div className="h-11 w-11 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0">
-                                                                <User className="h-5 w-5 text-zinc-400" />
-                                                            </div>
-                                                            <div className="min-w-0">
-                                                                <p className="text-[15px] font-extrabold text-zinc-200 truncate leading-tight">{client.name}</p>
-                                                                <div className="flex items-center gap-2 mt-0.5">
-                                                                    <span className="text-[11px] text-zinc-500 flex items-center gap-1"><Phone className="h-3.5 w-3.5" /> {client.phone}</span>
-                                                                    <span className="text-[11px] text-zinc-600">•</span>
-                                                                    <span className="text-[11px] text-zinc-500">{client.motorcycles.length} moto{client.motorcycles.length !== 1 ? 's' : ''}</span>
+                                                <ScrollArea className="h-56 rounded-b-xl">
+                                                    <div className="divide-y divide-zinc-800/50">
+                                                        {filteredClients.map((client) => (
+                                                            <button
+                                                                key={client.id}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setSelectedClientId(client.id);
+                                                                    setClientSearch('');
+                                                                    setSelectedMotoId(null);
+                                                                    setIsAddingNewMoto(client.motorcycles.length === 0);
+                                                                }}
+                                                                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-zinc-800/50 transition-colors text-left"
+                                                            >
+                                                                <div className="h-11 w-11 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0">
+                                                                    <User className="h-5 w-5 text-zinc-400" />
                                                                 </div>
-                                                            </div>
-                                                        </button>
-                                                    ))}
-                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <p className="text-[15px] font-extrabold text-zinc-200 truncate leading-tight">{client.name}</p>
+                                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                                        <span className="text-[11px] text-zinc-500 flex items-center gap-1"><Phone className="h-3.5 w-3.5" /> {client.phone}</span>
+                                                                        <span className="text-[11px] text-zinc-600">•</span>
+                                                                        <span className="text-[11px] text-zinc-500">{client.motorcycles.length} moto{client.motorcycles.length !== 1 ? 's' : ''}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </ScrollArea>
                                             )}
                                         </div>
 

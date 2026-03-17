@@ -105,7 +105,73 @@ export default function InventoryPage() {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="p-4 space-y-3 md:hidden">
+                    {filteredItems.length === 0 ? (
+                        <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-8 text-center">
+                            <Package className="h-8 w-8 text-zinc-700 mx-auto mb-3" />
+                            <p className="text-sm font-medium text-zinc-500">No se encontraron repuestos</p>
+                        </div>
+                    ) : (
+                        filteredItems.map((item) => {
+                            const isCritical = item.stock_quantity === 0;
+                            const isWarning = !isCritical && item.stock_quantity <= item.min_stock_level;
+                            const cover = item.images?.[0]?.dataUrl;
+                            return (
+                                <button
+                                    key={item.id}
+                                    onClick={() => {
+                                        setSelectedItemId(item.id);
+                                        setIsDrawerOpen(true);
+                                    }}
+                                    className="w-full text-left rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 hover:bg-zinc-800/30 transition-colors"
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <div className="h-12 w-12 rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden flex items-center justify-center shrink-0">
+                                            {cover ? (
+                                                <img src={cover} alt="Foto del repuesto" className="h-full w-full object-cover" />
+                                            ) : (
+                                                <Package className="h-5 w-5 text-zinc-600" />
+                                            )}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-extrabold text-zinc-200 truncate">{item.name}</p>
+                                                    <p className="text-[10px] uppercase font-mono tracking-widest text-zinc-600 mt-1 truncate">{item.category}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-sm font-extrabold text-zinc-100">{formatCOP(item.price)}</p>
+                                                    <p className="text-[10px] text-zinc-600 mt-1">{item.location}</p>
+                                                </div>
+                                            </div>
+                                            <div className="mt-3 flex items-center justify-between gap-3">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={cn("font-mono text-sm font-bold", isCritical ? "text-red-400" : (isWarning ? "text-amber-400" : "text-emerald-400"))}>
+                                                        {item.stock_quantity}
+                                                    </span>
+                                                    <span className="text-[10px] text-zinc-600">/ Min: {item.min_stock_level}</span>
+                                                    {isCritical && <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded">AGOTADO</span>}
+                                                </div>
+                                                {canEdit && (
+                                                    <span className={cn(
+                                                        "text-[10px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full border",
+                                                        isCritical
+                                                            ? "text-red-300 bg-red-500/10 border-red-500/20"
+                                                            : "text-zinc-300 bg-zinc-800 border-zinc-700"
+                                                    )}>
+                                                        {isCritical ? 'Reabastecer' : 'Editar'}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </button>
+                            );
+                        })
+                    )}
+                </div>
+
+                <div className="overflow-x-auto hidden md:block">
                     <table className="w-full text-left text-sm whitespace-nowrap">
                         <thead className="bg-zinc-900/50 text-xs uppercase tracking-widest text-zinc-500">
                             <tr>

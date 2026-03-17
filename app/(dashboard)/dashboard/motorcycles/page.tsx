@@ -6,7 +6,7 @@
 
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Activity, Calendar, Eye, Pencil, Plus, Search, User } from 'lucide-react';
+import { Activity, Calendar, Eye, Pencil, Plus, Search, User, Bike } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -126,7 +126,74 @@ export default function MotorcyclesPage() {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="p-4 space-y-3 md:hidden">
+                    {filtered.length === 0 ? (
+                        <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-8 text-center">
+                            <Bike className="h-8 w-8 text-zinc-700 mx-auto mb-3" />
+                            <p className="text-sm font-medium text-zinc-500">No se encontraron motos</p>
+                        </div>
+                    ) : (
+                        filtered.map(({ moto, client, mileage, lastServiceAt }) => (
+                            <div key={moto.id} className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-3">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex h-8 px-3 items-center justify-center rounded border border-yellow-500/30 bg-yellow-500/20 font-mono text-xs font-bold text-yellow-500 tracking-widest">
+                                                {moto.plate}
+                                            </div>
+                                            <p className="text-sm font-extrabold text-zinc-200 truncate">{moto.brand} {moto.model}</p>
+                                        </div>
+                                        <p className="text-[10px] uppercase tracking-widest text-zinc-600 mt-2">
+                                            {moto.year ? `Modelo ${moto.year}` : 'Sin año'}{moto.color ? ` • ${moto.color}` : ''}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="rounded-lg border border-zinc-800 bg-[#141417] px-3 py-2">
+                                    <p className="text-xs text-zinc-400">
+                                        <span className="text-zinc-200 font-semibold">{client.name}</span> • {client.phone}
+                                    </p>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-1.5 text-zinc-400 font-mono text-xs">
+                                        <Activity className="h-3.5 w-3.5 text-zinc-600" />
+                                        {(mileage ?? 0).toLocaleString('es-CO')} km
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-zinc-400 text-xs">
+                                        <Calendar className="h-3.5 w-3.5 text-zinc-600" />
+                                        {lastServiceAt ? format(new Date(lastServiceAt), "dd MMM yyyy", { locale: es }) : 'Sin registro'}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-end gap-2 pt-2">
+                                    <button
+                                        onClick={() => {
+                                            setSelectedMotoId(moto.id);
+                                            setIsDetailDrawerOpen(true);
+                                        }}
+                                        className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded-md transition-colors inline-flex items-center gap-1.5"
+                                    >
+                                        <Eye className="h-3 w-3" /> Ver Ficha
+                                    </button>
+                                    {canCreate && (
+                                        <button
+                                            onClick={() => {
+                                                setSelectedMotoIdForEdit(moto.id);
+                                                setIsMotoDrawerOpen(true);
+                                            }}
+                                            className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 px-3 py-2 rounded-md transition-colors inline-flex items-center gap-1.5"
+                                        >
+                                            <Pencil className="h-3 w-3" /> Editar
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                <div className="overflow-x-auto hidden md:block">
                     <table className="w-full text-left text-sm whitespace-nowrap">
                         <thead className="bg-zinc-900/50 text-xs uppercase tracking-widest text-zinc-500">
                             <tr>

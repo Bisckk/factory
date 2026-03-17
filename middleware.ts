@@ -18,7 +18,7 @@ const ROLE_ROUTES: Record<UserRole, string[]> = {
     admin: ['/dashboard'],
     mechanic: ['/dashboard/orders', '/dashboard/inventory', '/dashboard/appointments', '/dashboard'],
     client: ['/client'],
-    accountant: ['/dashboard/accounting', '/dashboard'],
+    accountant: ['/dashboard/accounting', '/dashboard/invoices', '/dashboard/payroll', '/dashboard'],
     receptionist: ['/dashboard/orders', '/dashboard/inventory', '/dashboard/appointments', '/dashboard/motorcycles', '/dashboard', '/dashboard/clients'],
 };
 
